@@ -6,11 +6,17 @@
 import {
   createSimpleFormatter,
   defaultFormatter,
+  type FormattedOutput,
   type FormatterContext,
   jsonFormatterAdapter as jsonFormatter,
   minimalFormatter,
   SimpleFormatterAdapter,
 } from "../../../src/shared/formatters";
+
+function assertJsonOutput(result: FormattedOutput): asserts result is Record<string, unknown> {
+  expect(typeof result).toBe("object");
+  expect(result).not.toBe(null);
+}
 
 describe("SimpleFormatterAdapter", () => {
   const createContext = (overrides: Partial<FormatterContext> = {}): FormatterContext => ({
@@ -115,9 +121,9 @@ describe("SimpleFormatterAdapter", () => {
     });
 
     it("should include PID when configured", () => {
-      // PID is only included in JSON output
-      const jsonFormatter = new SimpleFormatterAdapter({ includePid: true, jsonOutput: true });
-      const jsonResult = jsonFormatter.formatInfo(createContext()) as Record<string, unknown>;
+      const jsonFmt = new SimpleFormatterAdapter({ includePid: true, jsonOutput: true });
+      const jsonResult = jsonFmt.formatInfo(createContext());
+      assertJsonOutput(jsonResult);
       expect(jsonResult.pid).toBe(12345);
     });
   });
@@ -126,16 +132,15 @@ describe("SimpleFormatterAdapter", () => {
     it("should output JSON when configured", () => {
       const formatter = new SimpleFormatterAdapter({ jsonOutput: true });
       const result = formatter.formatInfo(createContext());
-
-      expect(typeof result).toBe("object");
-      expect((result as Record<string, unknown>).level).toBe("INFO");
-      expect((result as Record<string, unknown>).message).toBe("Test message");
+      assertJsonOutput(result);
+      expect(result.level).toBe("INFO");
+      expect(result.message).toBe("Test message");
     });
 
     it("should include all fields in JSON output", () => {
       const formatter = new SimpleFormatterAdapter({ jsonOutput: true });
-      const result = formatter.formatInfo(createContext()) as Record<string, unknown>;
-
+      const result = formatter.formatInfo(createContext());
+      assertJsonOutput(result);
       expect(result.timestamp).toBe("2024-01-01T12:00:00.000Z");
       expect(result.level).toBe("INFO");
       expect(result.name).toBe("TestLogger");
@@ -149,8 +154,8 @@ describe("SimpleFormatterAdapter", () => {
         includeTimestamp: false,
         includeName: false,
       });
-      const result = formatter.formatInfo(createContext()) as Record<string, unknown>;
-
+      const result = formatter.formatInfo(createContext());
+      assertJsonOutput(result);
       expect(result.timestamp).toBeUndefined();
       expect(result.name).toBeUndefined();
       expect(result.message).toBe("Test message");
@@ -241,7 +246,8 @@ describe("Pre-configured formatters", () => {
 
   describe("minimalFormatter", () => {
     it("should exclude timestamp and name", () => {
-      const result = minimalFormatter.formatInfo(context) as string;
+      const result = minimalFormatter.formatInfo(context);
+      expect(typeof result).toBe("string");
       expect(result).not.toContain("2024-01-01");
       expect(result).not.toContain("Test:");
       expect(result).toContain("[INFO]");
@@ -255,7 +261,8 @@ describe("Pre-configured formatters", () => {
         includePid: true,
         jsonOutput: true,
       });
-      const result = verboseJson.formatInfo({ ...context, pid: 999 }) as Record<string, unknown>;
+      const result = verboseJson.formatInfo({ ...context, pid: 999 });
+      assertJsonOutput(result);
       expect(result.pid).toBe(999);
     });
   });

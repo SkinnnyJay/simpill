@@ -1,20 +1,7 @@
-/**
- * @simpill/logger.utils - Basic Usage
- *
- * This example demonstrates the core logging functionality.
- *
- * Run: npx ts-node examples/01-basic-usage.ts
- */
-
+/** Run: npx ts-node examples/01-basic-usage.ts */
 import { getLogger, LoggerFactory } from "@simpill/logger.utils";
 
-// ============================================================================
-// Creating Loggers
-// ============================================================================
-
 console.log("=== Creating Loggers ===\n");
-
-// Create a logger for a specific service/class
 const logger = getLogger("MyService");
 
 // Log at different levels
@@ -23,13 +10,7 @@ logger.warn("Cache miss detected", { key: "user:123" });
 logger.debug("Processing request", { requestId: "abc-123" });
 logger.error("Failed to connect", { host: "db.example.com", retries: 3 });
 
-// ============================================================================
-// Logger with Default Metadata
-// ============================================================================
-
 console.log("\n=== Logger with Default Metadata ===\n");
-
-// Create a logger with metadata that's included in every log
 const requestLogger = getLogger("RequestHandler", {
   requestId: "req-456",
   userId: "user-789",
@@ -38,23 +19,11 @@ const requestLogger = getLogger("RequestHandler", {
 requestLogger.info("Processing request");
 requestLogger.info("Request completed", { duration: 150 });
 
-// ============================================================================
-// Root Logger
-// ============================================================================
-
 console.log("\n=== Root Logger ===\n");
-
-// Get the root logger (uses default context)
 const rootLogger = LoggerFactory.getRootLogger();
 rootLogger.info("Root logger message");
 
-// ============================================================================
-// Logger Caching
-// ============================================================================
-
 console.log("\n=== Logger Caching ===\n");
-
-// Loggers without metadata are cached for performance
 const logger1 = getLogger("CachedService");
 const logger2 = getLogger("CachedService");
 

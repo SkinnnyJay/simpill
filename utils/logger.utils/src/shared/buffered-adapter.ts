@@ -1,57 +1,18 @@
-/**
- * @file Buffered Logger Adapter
- * @description Wraps any LoggerAdapter to provide async buffered logging
- *
- * Buffered logging prevents blocking the event loop on high-throughput logging
- * by batching writes and flushing periodically or when buffer is full.
- *
- * @example
- * ```typescript
- * import { BufferedLoggerAdapter, SimpleLoggerAdapter } from "@simpill/logger.utils";
- *
- * const buffered = new BufferedLoggerAdapter(new SimpleLoggerAdapter(), {
- *   maxBufferSize: 100,
- *   flushIntervalMs: 1000,
- * });
- *
- * configureLoggerFactory({ adapter: buffered });
- *
- * // Logs are buffered and flushed every 1s or when 100 entries accumulate
- * logger.info("This is buffered");
- *
- * // Force flush on shutdown
- * await buffered.flush();
- * ```
- */
+/** Buffered adapter. Never throws; call destroy() on shutdown to flush remaining. On flush failure, the failed batch is re-prepended to the buffer; order is preserved within each batch. */
+import { VALUE_0 } from "./internal-constants";
 
 import type { LoggerAdapter, LoggerAdapterConfig } from "./adapter";
-import { BUFFERED_ADAPTER_DEFAULTS, ERROR_MESSAGES, LOG_PREFIX } from "./constants";
+import { BUFFERED_ADAPTER_DEFAULTS } from "./constants";
 import type { LogEntry, LogMetadata } from "./types";
 
-/**
- * Configuration for BufferedLoggerAdapter
- */
 export interface BufferedAdapterConfig {
-  /** Maximum entries to buffer before force flush (default: 100) */
   maxBufferSize?: number;
-  /** Interval in ms between automatic flushes (default: 1000) */
   flushIntervalMs?: number;
-  /** Callback when flush fails (default: console.error) */
+  /** Called on flush failure (default: no-op). Never throw from logger. */
   onFlushError?: (error: unknown, entries: LogEntry[]) => void;
 }
 
-/**
- * Wraps a LoggerAdapter to provide buffered async logging
- *
- * Benefits:
- * - Non-blocking: log() returns immediately
- * - Batched writes: reduces I/O overhead
- * - Backpressure: flushes when buffer is full
- *
- * Tradeoffs:
- * - Logs may be lost on crash (call flush() on shutdown)
- * - Slight delay before logs appear
- */
+/** Never throws; flush on interval or when full. Call destroy() on shutdown. */
 export class BufferedLoggerAdapter implements LoggerAdapter {
   private readonly inner: LoggerAdapter;
   private readonly config: Required<BufferedAdapterConfig>;
@@ -65,30 +26,15 @@ export class BufferedLoggerAdapter implements LoggerAdapter {
     this.config = {
       maxBufferSize: config.maxBufferSize ?? BUFFERED_ADAPTER_DEFAULTS.MAX_BUFFER_SIZE,
       flushIntervalMs: config.flushIntervalMs ?? BUFFERED_ADAPTER_DEFAULTS.FLUSH_INTERVAL_MS,
-      onFlushError:
-        config.onFlushError ??
-        ((err, entries) => {
-          console.error(
-            `${LOG_PREFIX.BUFFERED_LOGGER} ${ERROR_MESSAGES.FLUSH_FAILED}:`,
-            err,
-            `(${entries.length} ${ERROR_MESSAGES.ENTRIES_LOST})`
-          );
-        }),
+      onFlushError: config.onFlushError ?? ((): void => {}),
     };
   }
 
-  /**
-   * Initialize the inner adapter and start flush timer
-   */
   initialize(config: LoggerAdapterConfig): void {
     this.inner.initialize(config);
     this.startFlushTimer();
   }
 
-  /**
-   * Buffer a log entry for later flushing
-   * Triggers immediate flush if buffer is full
-   */
   log(entry: LogEntry): void {
     if (this.isDestroyed) {
       return;
@@ -96,26 +42,19 @@ export class BufferedLoggerAdapter implements LoggerAdapter {
 
     this.buffer.push(entry);
 
-    // Flush immediately if buffer is full
     if (this.buffer.length >= this.config.maxBufferSize) {
       this.flushSync();
     }
   }
 
-  /**
-   * Create a child buffered adapter
-   * Children share the same buffer and flush behavior
-   */
+  /** Child uses same buffer and flush config. */
   child(name: string, defaultMetadata?: LogMetadata): LoggerAdapter {
-    // Create a lightweight child that writes to the same buffer
     return new BufferedChildAdapter(this, name, defaultMetadata);
   }
 
-  /**
-   * Flush all buffered entries asynchronously
-   */
+  /** Never throws; errors reported via onFlushError. */
   async flush(): Promise<void> {
-    if (this.isFlushing || this.buffer.length === 0) {
+    if (this.isFlushing || this.buffer.length === VALUE_0) {
       return;
     }
 
@@ -127,23 +66,20 @@ export class BufferedLoggerAdapter implements LoggerAdapter {
       for (const entry of entries) {
         this.inner.log(entry);
       }
-      // Also flush inner adapter if it supports it
       if (this.inner.flush) {
         await this.inner.flush();
       }
     } catch (err) {
       this.config.onFlushError(err, entries);
+      this.buffer = entries.concat(this.buffer);
     } finally {
       this.isFlushing = false;
     }
   }
 
-  /**
-   * Synchronous flush for immediate buffer drain
-   * Used when buffer is full to prevent unbounded growth
-   */
+  /** Flush synchronously when full (prevents unbounded growth). */
   private flushSync(): void {
-    if (this.isFlushing || this.buffer.length === 0) {
+    if (this.isFlushing || this.buffer.length === VALUE_0) {
       return;
     }
 
@@ -157,30 +93,23 @@ export class BufferedLoggerAdapter implements LoggerAdapter {
       }
     } catch (err) {
       this.config.onFlushError(err, entries);
+      this.buffer = entries.concat(this.buffer);
     } finally {
       this.isFlushing = false;
     }
   }
 
-  /**
-   * Stop flush timer and flush remaining entries
-   */
   async destroy(): Promise<void> {
     this.isDestroyed = true;
     this.stopFlushTimer();
 
-    // Final flush
     await this.flush();
 
-    // Destroy inner adapter
     if (this.inner.destroy) {
       await this.inner.destroy();
     }
   }
 
-  /**
-   * Start the periodic flush timer
-   */
   private startFlushTimer(): void {
     if (this.flushTimer) {
       return;
@@ -192,15 +121,11 @@ export class BufferedLoggerAdapter implements LoggerAdapter {
       });
     }, this.config.flushIntervalMs);
 
-    // Don't keep process alive just for logging
     if (typeof this.flushTimer.unref === "function") {
       this.flushTimer.unref();
     }
   }
 
-  /**
-   * Stop the periodic flush timer
-   */
   private stopFlushTimer(): void {
     if (this.flushTimer) {
       clearInterval(this.flushTimer);
@@ -208,17 +133,12 @@ export class BufferedLoggerAdapter implements LoggerAdapter {
     }
   }
 
-  /**
-   * Get current buffer size (for monitoring/testing)
-   */
+  /** Buffer size (for tests/monitoring). */
   getBufferSize(): number {
     return this.buffer.length;
   }
 }
 
-/**
- * Lightweight child adapter that writes to parent's buffer
- */
 class BufferedChildAdapter implements LoggerAdapter {
   constructor(
     private readonly parent: BufferedLoggerAdapter,
@@ -226,12 +146,9 @@ class BufferedChildAdapter implements LoggerAdapter {
     private readonly defaultMetadata?: LogMetadata
   ) {}
 
-  initialize(_config: LoggerAdapterConfig): void {
-    // No-op: parent handles initialization
-  }
+  initialize(_config: LoggerAdapterConfig): void {}
 
   log(entry: LogEntry): void {
-    // Merge default metadata and override name
     const mergedEntry: LogEntry = {
       ...entry,
       name: entry.name || this.name,
@@ -253,14 +170,9 @@ class BufferedChildAdapter implements LoggerAdapter {
     return this.parent.flush();
   }
 
-  async destroy(): Promise<void> {
-    // No-op: parent handles destruction
-  }
+  async destroy(): Promise<void> {}
 }
 
-/**
- * Create a BufferedLoggerAdapter wrapping the given adapter
- */
 export function createBufferedAdapter(
   innerAdapter: LoggerAdapter,
   config?: BufferedAdapterConfig

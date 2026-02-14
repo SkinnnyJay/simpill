@@ -1,54 +1,20 @@
-/**
- * @file Simple Formatter Adapter
- * @description Default formatter implementation with configurable options
- */
+/** Default formatter with configurable options (text or JSON). */
 
+import { VALUE_0 } from "../internal-constants";
 import { LOG_LEVEL } from "../constants";
 import type { FormattedOutput, FormatterAdapter, FormatterContext } from "./formatter.adapter";
 
-/**
- * Configuration options for SimpleFormatterAdapter
- */
 export interface SimpleFormatterConfig {
-  /** Include timestamp in output (default: true) */
   includeTimestamp?: boolean;
-  /** Include log level in output (default: true) */
   includeLevel?: boolean;
-  /** Include logger name in output (default: true) */
   includeName?: boolean;
-  /** Include metadata in output (default: true) */
   includeMetadata?: boolean;
-  /** Output as JSON instead of text (default: false) */
   jsonOutput?: boolean;
-  /** Include PID in output (default: false) */
   includePid?: boolean;
-  /** Custom level labels (e.g., { INFO: "INFORMATION", WARN: "WARNING" }) */
   levelLabels?: Partial<Record<string, string>>;
-  /** Custom timestamp formatter */
   timestampFormatter?: (timestamp: string) => string;
 }
 
-/**
- * Default formatter adapter - produces human-readable log output
- *
- * @example
- * ```typescript
- * // Default format
- * const formatter = new SimpleFormatterAdapter();
- * // Output: [2024-01-01T12:00:00.000Z] [INFO] MyService: Hello world {"userId":"123"}
- *
- * // JSON format
- * const jsonFormatter = new SimpleFormatterAdapter({ jsonOutput: true });
- * // Output: {"timestamp":"...","level":"INFO","name":"MyService","message":"Hello world","metadata":{...}}
- *
- * // Minimal format
- * const minimalFormatter = new SimpleFormatterAdapter({
- *   includeTimestamp: false,
- *   includeName: false
- * });
- * // Output: [INFO] Hello world {"userId":"123"}
- * ```
- */
 export class SimpleFormatterAdapter implements FormatterAdapter {
   private config: Required<Omit<SimpleFormatterConfig, "levelLabels" | "timestampFormatter">> & {
     levelLabels: Record<string, string>;
@@ -74,9 +40,6 @@ export class SimpleFormatterAdapter implements FormatterAdapter {
     };
   }
 
-  /**
-   * Format a log entry based on configuration
-   */
   private format(context: FormatterContext): FormattedOutput {
     if (this.config.jsonOutput) {
       return this.formatAsJson(context);
@@ -84,9 +47,6 @@ export class SimpleFormatterAdapter implements FormatterAdapter {
     return this.formatAsText(context);
   }
 
-  /**
-   * Format as JSON object
-   */
   private formatAsJson(context: FormatterContext): Record<string, unknown> {
     const output: Record<string, unknown> = {};
 
@@ -111,7 +71,7 @@ export class SimpleFormatterAdapter implements FormatterAdapter {
     if (
       this.config.includeMetadata &&
       context.metadata &&
-      Object.keys(context.metadata).length > 0
+      Object.keys(context.metadata).length > VALUE_0
     ) {
       output.metadata = context.metadata;
     }
@@ -119,9 +79,6 @@ export class SimpleFormatterAdapter implements FormatterAdapter {
     return output;
   }
 
-  /**
-   * Format as human-readable text
-   */
   private formatAsText(context: FormatterContext): string {
     const parts: string[] = [];
 
@@ -143,7 +100,7 @@ export class SimpleFormatterAdapter implements FormatterAdapter {
     if (
       this.config.includeMetadata &&
       context.metadata &&
-      Object.keys(context.metadata).length > 0
+      Object.keys(context.metadata).length > VALUE_0
     ) {
       parts.push(JSON.stringify(context.metadata));
     }
@@ -168,16 +125,10 @@ export class SimpleFormatterAdapter implements FormatterAdapter {
   }
 }
 
-/**
- * Create a SimpleFormatterAdapter with the given config
- */
 export function createSimpleFormatter(config?: SimpleFormatterConfig): SimpleFormatterAdapter {
   return new SimpleFormatterAdapter(config);
 }
 
-/**
- * Pre-configured formatter instances
- */
 export const defaultFormatter = new SimpleFormatterAdapter();
 
 export const jsonFormatter = new SimpleFormatterAdapter({ jsonOutput: true });

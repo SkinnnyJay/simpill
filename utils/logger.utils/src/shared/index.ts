@@ -1,13 +1,5 @@
-/**
- * @file Shared Exports
- * @description Runtime-agnostic logger utilities
- */
+/** Shared (runtime-agnostic) logger utilities. */
 
-// ============================================
-// Core Types and Constants
-// ============================================
-
-// Constants
 export {
   ANSI_COLORS,
   type AnsiColor,
@@ -42,7 +34,6 @@ export {
   type OutputChar,
 } from "./constants";
 
-// Types
 export {
   type ErrorInfo,
   extractErrorInfo,
@@ -59,22 +50,12 @@ export {
   shouldLog,
 } from "./types";
 
-// ============================================
-// Adapter Interfaces (Plugin Architecture)
-// ============================================
-
-// Logger adapter interface
 export {
   isLoggerAdapter,
   type LoggerAdapter,
   type LoggerAdapterConfig,
 } from "./adapter";
 
-// ============================================
-// Formatters (from formatters/ subfolder)
-// ============================================
-
-// Formatter adapter interface
 export {
   createFormatterContext,
   type FormattedOutput,
@@ -85,7 +66,6 @@ export {
   outputToString,
 } from "./formatters";
 
-// Simple formatter (default)
 export {
   createSimpleFormatter,
   defaultFormatter,
@@ -96,7 +76,6 @@ export {
   verboseFormatter,
 } from "./formatters";
 
-// Colored formatter (terminal)
 export {
   COLORS,
   ColoredFormatterAdapter,
@@ -105,7 +84,6 @@ export {
   createColoredFormatter,
 } from "./formatters";
 
-// Legacy formatters (backward compatibility)
 export {
   createFormatter,
   type FormatterOptions,
@@ -115,25 +93,14 @@ export {
   timestampFormatter,
 } from "./formatters";
 
-// ============================================
-// Adapter Implementations
-// ============================================
-
-// Simple adapter (default implementation)
 export { createSimpleAdapter, SimpleLoggerAdapter } from "./simple-adapter";
 
-// Buffered adapter for async logging
 export {
   type BufferedAdapterConfig,
   BufferedLoggerAdapter,
   createBufferedAdapter,
 } from "./buffered-adapter";
 
-// ============================================
-// Configuration
-// ============================================
-
-// Environment configuration
 export {
   createFormatterFromEnv,
   ENV_DEFAULTS,
@@ -144,7 +111,6 @@ export {
   loadEnvConfig,
 } from "./env.config";
 
-// Context provider for correlation IDs
 export {
   clearLogContextProvider,
   getLogContext,
@@ -154,10 +120,6 @@ export {
   setLogContextProvider,
   withLogContext,
 } from "./context";
-
-// ============================================
-// Factory (Main Entry Point)
-// ============================================
 
 export {
   clearLoggerCache,

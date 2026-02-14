@@ -1,30 +1,17 @@
-/**
- * @file Colored Formatter Adapter
- * @description Terminal-friendly formatter with ANSI color codes
- */
+/** Terminal formatter with ANSI colors. */
 
+import { VALUE_0 } from "../internal-constants";
 import { ANSI_COLORS, LOG_LEVEL } from "../constants";
 import type { FormattedOutput, FormatterAdapter, FormatterContext } from "./formatter.adapter";
 
-/**
- * Alias for ANSI_COLORS for backwards compatibility
- * @deprecated Use ANSI_COLORS from constants.ts instead
- */
+/** @deprecated Use ANSI_COLORS from constants.ts instead */
 const COLORS = ANSI_COLORS;
 
-/**
- * Configuration for ColoredFormatterAdapter
- */
 export interface ColoredFormatterConfig {
-  /** Include timestamp (default: true) */
   includeTimestamp?: boolean;
-  /** Include logger name (default: true) */
   includeName?: boolean;
-  /** Include metadata (default: true) */
   includeMetadata?: boolean;
-  /** Use bright/bold colors (default: true) */
   bright?: boolean;
-  /** Custom colors for each level */
   colors?: {
     info?: string;
     warn?: string;
@@ -36,22 +23,6 @@ export interface ColoredFormatterConfig {
   };
 }
 
-/**
- * Colored formatter for terminal output
- * Produces colorful, easy-to-read logs for development
- *
- * @example
- * ```typescript
- * const formatter = new ColoredFormatterAdapter();
- * // Output: [2024-01-01T12:00:00.000Z] [INFO] MyService: Hello world
- * //         (with colors: timestamp=dim, INFO=blue, name=cyan)
- *
- * // Custom colors
- * const customFormatter = new ColoredFormatterAdapter({
- *   colors: { info: COLORS.green, error: COLORS.bgRed }
- * });
- * ```
- */
 export class ColoredFormatterAdapter implements FormatterAdapter {
   private config: Required<Omit<ColoredFormatterConfig, "colors">> & {
     colors: Required<NonNullable<ColoredFormatterConfig["colors"]>>;
@@ -75,17 +46,11 @@ export class ColoredFormatterAdapter implements FormatterAdapter {
     };
   }
 
-  /**
-   * Apply color to text
-   */
   private colorize(text: string, color: string): string {
     const bright = this.config.bright ? COLORS.bright : "";
     return `${bright}${color}${text}${COLORS.reset}`;
   }
 
-  /**
-   * Format the base log structure
-   */
   private formatBase(context: FormatterContext, levelColor: string, levelLabel: string): string {
     const parts: string[] = [];
 
@@ -104,7 +69,7 @@ export class ColoredFormatterAdapter implements FormatterAdapter {
     if (
       this.config.includeMetadata &&
       context.metadata &&
-      Object.keys(context.metadata).length > 0
+      Object.keys(context.metadata).length > VALUE_0
     ) {
       parts.push(this.colorize(JSON.stringify(context.metadata), this.config.colors.metadata));
     }
@@ -129,20 +94,10 @@ export class ColoredFormatterAdapter implements FormatterAdapter {
   }
 }
 
-/**
- * Create a ColoredFormatterAdapter with the given config
- */
 export function createColoredFormatter(config?: ColoredFormatterConfig): ColoredFormatterAdapter {
   return new ColoredFormatterAdapter(config);
 }
 
-/**
- * Pre-configured colored formatter instance
- */
 export const coloredFormatter = new ColoredFormatterAdapter();
 
-/**
- * Export color constants for custom configurations
- * Re-exports ANSI_COLORS from constants.ts for convenience
- */
 export { ANSI_COLORS as COLORS };

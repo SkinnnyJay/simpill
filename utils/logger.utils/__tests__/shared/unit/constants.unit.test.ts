@@ -94,38 +94,24 @@ describe("LOGGER_DEFAULTS", () => {
 });
 
 describe("BOOLEAN_TRUTHY_VALUES", () => {
-  it("should contain 'true'", () => {
+  it("should contain 'true' and '1' (strict, from protocols.utils)", () => {
     expect(BOOLEAN_TRUTHY_VALUES).toContain("true");
-  });
-
-  it("should contain '1'", () => {
     expect(BOOLEAN_TRUTHY_VALUES).toContain("1");
   });
 
-  it("should contain 'yes'", () => {
-    expect(BOOLEAN_TRUTHY_VALUES).toContain("yes");
-  });
-
-  it("should have exactly 3 values", () => {
-    expect(BOOLEAN_TRUTHY_VALUES).toHaveLength(3);
+  it("should have exactly 2 values", () => {
+    expect(BOOLEAN_TRUTHY_VALUES).toHaveLength(2);
   });
 });
 
 describe("BOOLEAN_FALSY_VALUES", () => {
-  it("should contain 'false'", () => {
+  it("should contain 'false' and '0' (strict, from protocols.utils)", () => {
     expect(BOOLEAN_FALSY_VALUES).toContain("false");
-  });
-
-  it("should contain '0'", () => {
     expect(BOOLEAN_FALSY_VALUES).toContain("0");
   });
 
-  it("should contain 'no'", () => {
-    expect(BOOLEAN_FALSY_VALUES).toContain("no");
-  });
-
-  it("should have exactly 3 values", () => {
-    expect(BOOLEAN_FALSY_VALUES).toHaveLength(3);
+  it("should have exactly 2 values", () => {
+    expect(BOOLEAN_FALSY_VALUES).toHaveLength(2);
   });
 });
 

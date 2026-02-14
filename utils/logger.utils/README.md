@@ -3,8 +3,14 @@
 </p>
 
 <p align="center">
-  <strong>Type-safe structured logging with a plugin architecture for Node.js and Edge Runtime</strong>
+  <strong>Type-safe structured logging with correlation context for Node.js and Edge Runtime</strong>
 </p>
+
+<p align="center">
+  Structured logging with correlation IDs and request context for Node and Edge.
+</p>
+
+**Features:** Type-safe · Node.js & Edge Runtime · Correlation ID / request-id · Tree-shakeable (subpath exports: `/client`, `/server`, `/shared`)
 
 <p align="center">
   <a href="#the-choice">The Choice</a> •
@@ -204,6 +210,8 @@ interface FormatterAdapter {
 |---------|-------------|--------------|
 | `SimpleLoggerAdapter` | Default adapter using stdout/stderr | None |
 | `PinoLoggerAdapter` | High-performance JSON logging | `pino` (peer) |
+| `FileLoggerAdapter` | Disk logging with rotation (sync I/O; wrap with `BufferedLoggerAdapter` for high throughput) | None |
+| `BufferedLoggerAdapter` | Batches log entries and flushes to an inner adapter; call `destroy()` on shutdown to stop the timer and flush | None |
 
 ### Built-in Formatters
 
@@ -214,6 +222,106 @@ interface FormatterAdapter {
 | `jsonFormatter` | JSON output |
 | `minimalFormatter` | Level + message only |
 | `verboseFormatter` | Full output including PID |
+
+---
+
+## Structured log schema (ECS / Pino compatible)
+
+Each log entry has a fixed shape suitable for log shippers (Elastic, Datadog, etc.):
+
+- **level** — `DEBUG` \| `INFO` \| `WARN` \| `ERROR`
+- **message** — string
+- **name** — logger name (e.g. service or class)
+- **timestamp** — ISO string (optional)
+- **metadata** — optional object (merged with correlation context on server)
+
+JSON output follows a similar structure to Pino/ECS so you can pipe to the same pipelines. Use `LOG_FORMAT=json` in production for machine-readable logs.
+
+---
+
+## Client vs server (runtime parity)
+
+| Feature | Server (`@simpill/logger.utils/server`) | Client (`@simpill/logger.utils/client`) |
+|--------|----------------------------------------|----------------------------------------|
+| Correlation context | ✅ `withLogContext`, `setLogContextProvider` | ❌ No AsyncLocalStorage |
+| File adapter / BufferedAdapter | ✅ | ❌ |
+| `createClassLogger`, `getLogger` | ✅ | ✅ `createEdgeLogger`, `getLogger` (if using main entry) |
+| `logTable`, `logLLMEvent`, `logExecutorEvent` | ✅ Server-only helpers | ❌ |
+
+Use the **client** entry in Edge Runtime or browser to avoid pulling Node-only code.
+
+---
+
+## Correlation context and AsyncLocalStorage (server)
+
+Use request-scoped context so every log inside a request carries the same `requestId` / `traceId`:
+
+```typescript
+import { withLogContext, getLogger, setLogContextProvider } from "@simpill/logger.utils/server";
+
+// In your framework middleware (e.g. Express/Fastify):
+app.use((req, res, next) => {
+  const requestId = req.headers["x-request-id"] ?? crypto.randomUUID();
+  withLogContext({ requestId }, () => next());
+});
+
+// Or provide context from AsyncLocalStorage yourself:
+setLogContextProvider(() => ({ requestId: getRequestContext()?.requestId }));
+const logger = getLogger("MyService");
+logger.info("Handling request"); // metadata will include requestId if provider returns it
+```
+
+---
+
+## Buffered adapter and shutdown
+
+`BufferedLoggerAdapter` batches entries and flushes on an interval or when the buffer is full. Flush is sequential (for-of over each entry); for very large buffers the inner adapter may be slow. To avoid losing logs on exit:
+
+- Call **`flushLogs()`** (or `adapter.flush()`) in a shutdown hook before process exit.
+- Call **`destroy()`** on the adapter to stop the timer and perform a final flush. This is **required for cleanup** (clears the flush timer and flushes remaining entries); without it the timer may keep the process alive or drop buffered logs.
+
+Configure buffer size and flush interval via `BufferedAdapterConfig`; larger buffers reduce I/O but increase memory and risk of losing logs on crash.
+
+---
+
+## Transports and custom backends
+
+Besides the built-in **Pino** adapter, you can implement `LoggerAdapter` to wrap **Winston**, **Bunyan**, or any backend: implement `log(entry)`, `child(name, metadata)`, and optionally `flush`/`destroy`. Set it globally with `setLoggerAdapter(myAdapter)`. See [Creating Custom Components](#creating-custom-components).
+
+---
+
+## Redaction and PII
+
+This package does not redact fields automatically. To avoid logging PII:
+
+- Do not put secrets or raw PII in `message` or `metadata`.
+- Redact in a custom formatter (e.g. replace `password`, `token` with `[REDACTED]`) or sanitize metadata before calling `logger.info(message, metadata)`.
+- Use structured metadata only for non-sensitive identifiers (e.g. requestId, userId) when needed for tracing.
+
+---
+
+## JSON vs pretty: when to use which
+
+- **JSON** (`LOG_FORMAT=json`): Use in production for log aggregation and querying; minimal overhead and consistent parsing.
+- **Pretty**: Use in development for readability. Colored/formatted output is slower and not intended for high-throughput production.
+
+---
+
+## Sampling and rate limiting
+
+There is no built-in sampling. To reduce log volume (e.g. DEBUG in production), either set `minLevel` to `INFO` or higher via `configureLoggerFactory`, or implement sampling in a custom adapter (e.g. log only 1 in N entries for a given level).
+
+---
+
+## Server-only helpers
+
+From `@simpill/logger.utils/server`:
+
+- **`logTable(logger, title, rows)`** — Log a table (array of objects) for debugging.
+- **`logLLMEvent(logger, message, metadata?)`** — Log LLM-related events with consistent metadata.
+- **`logExecutorEvent(logger, message, metadata?)`** — Log executor/tool events.
+
+Use these for structured operational logs alongside your normal `logger.info`/`logger.error` calls.
 
 ---
 
@@ -260,6 +368,13 @@ class MyCustomAdapter implements LoggerAdapter {
 LoggerFactory.setAdapter(new MyCustomAdapter());
 ```
 
+### What we don't provide
+
+- **ECS/Pino-style schema** — The **LoggerAdapter** contract is **debug/info/warn/error**(message, ...args). Structure (e.g. ECS fields, level, timestamp) is the adapter’s responsibility; implement it in your adapter or use one that matches your format.
+- **Sampling / rate limiting** — No built-in sample rate or log throttling; implement in the adapter (e.g. drop or queue in adapter.info) if needed.
+- **Redaction / PII** — No built-in redaction; sanitize in the adapter or before calling logger methods.
+- **File / transport implementations** — Only the adapter interface; use **@simpill/adapters.utils** **consoleLoggerAdapter** or wire Pino/Winston/etc. via a custom adapter.
+
 ---
 
 ## API Reference
@@ -267,19 +382,23 @@ LoggerFactory.setAdapter(new MyCustomAdapter());
 ### LoggerFactory
 
 ```typescript
-import { LoggerFactory, getLogger } from "@simpill/logger.utils";
+import { LoggerFactory, getLogger, configureLoggerFactory } from "@simpill/logger.utils";
 
-LoggerFactory.configure({ config: { minLevel: "INFO" } });
-LoggerFactory.setAdapter(myAdapter);
+configureLoggerFactory({ config: { minLevel: "INFO" } });
+setLoggerAdapter(myAdapter);
 
 const logger = getLogger("ServiceName");
 
-LoggerFactory.enableMock();   // Silent mode
-LoggerFactory.disableMock();  // Normal mode
-LoggerFactory.clearCache();   // Clear cached loggers
-await LoggerFactory.flush();  // Flush buffered logs
-await LoggerFactory.reset();  // Reset to defaults
+enableLoggerMock();   // Silent mode
+disableLoggerMock();  // Normal mode
+clearLoggerCache();   // Clear cached loggers
+await flushLogs();    // Flush buffered logs
+await resetLoggerFactory();  // Reset to defaults
 ```
+
+**Logger cache:** `getLogger(name)` caches loggers by name (when called without `defaultMetadata`). The cache is size-bounded (LRU, max 1000 entries) with **no TTL**—entries stay until evicted by size or until `clearLoggerCache()` is called. Call `clearLoggerCache()` after reconfiguring the adapter if you need to avoid stale logger references.
+
+**Per-logger level:** Filtering is global via `config.minLevel`. For per-logger or per-name level overrides, use a custom adapter that checks the logger name or metadata and filters entries before forwarding.
 
 ### Logger Interface
 
@@ -326,6 +445,13 @@ npm run test:coverage # Coverage report
 npm run build        # Build
 npm run verify       # All checks
 ```
+
+## Documentation
+
+- **Examples:** [examples/](./examples/) — run with `npx ts-node examples/01-basic-usage.ts`.
+- **Monorepo:** [CONTRIBUTING](https://github.com/SkinnnyJay/@simpill/blob/main/CONTRIBUTING.md) for creating and maintaining packages.
+- **README standard:** [Package README standard](https://github.com/SkinnnyJay/@simpill/blob/main/docs/PACKAGE_README_STANDARD.md).
+- **Maintainers:** [AGENTS.md](./AGENTS.md), [CLAUDE.md](./CLAUDE.md).
 
 ---
 

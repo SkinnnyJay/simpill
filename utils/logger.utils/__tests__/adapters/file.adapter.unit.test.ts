@@ -5,6 +5,7 @@
 
 import * as fs from "node:fs";
 import { createFileAdapter, FileLoggerAdapter } from "../../src/adapters/file.adapter";
+import { BufferedLoggerAdapter } from "../../src/shared/buffered-adapter";
 import { FILE_TRANSPORT_DEFAULTS, LOG_LEVEL } from "../../src/shared/constants";
 
 // Mock fs module
@@ -12,12 +13,24 @@ jest.mock("node:fs");
 
 const mockFs = fs as jest.Mocked<typeof fs>;
 
+function createMockStats(overrides: { size?: number } = {}): fs.Stats {
+  return { size: 0, ...overrides } as fs.Stats;
+}
+
+function getWrittenContentAt(callIndex: number): string {
+  const calls = mockFs.appendFileSync.mock.calls;
+  expect(calls.length).toBeGreaterThan(callIndex);
+  const content = calls[callIndex]?.[1];
+  expect(typeof content).toBe("string");
+  if (typeof content !== "string") throw new Error("expected string");
+  return content;
+}
+
 describe("FileLoggerAdapter", () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    // Default mock implementations
     mockFs.existsSync.mockReturnValue(true);
-    mockFs.statSync.mockReturnValue({ size: 0 } as fs.Stats);
+    mockFs.statSync.mockReturnValue(createMockStats());
     mockFs.appendFileSync.mockImplementation(() => undefined);
     mockFs.mkdirSync.mockImplementation(() => undefined);
     mockFs.renameSync.mockImplementation(() => undefined);
@@ -123,7 +136,7 @@ describe("FileLoggerAdapter", () => {
         metadata: { userId: "123" },
       });
 
-      const writtenContent = mockFs.appendFileSync.mock.calls[0][1] as string;
+      const writtenContent = getWrittenContentAt(0);
       const parsed = JSON.parse(writtenContent.trim());
 
       expect(parsed.level).toBe("INFO");
@@ -143,7 +156,7 @@ describe("FileLoggerAdapter", () => {
         name: "TestLogger",
       });
 
-      const writtenContent = mockFs.appendFileSync.mock.calls[0][1] as string;
+      const writtenContent = getWrittenContentAt(0);
 
       expect(writtenContent).toContain("INFO");
       expect(writtenContent).toContain("Test message");
@@ -198,7 +211,7 @@ describe("FileLoggerAdapter", () => {
 
   describe("rotation", () => {
     it("should rotate file when size exceeds maxFileSize", () => {
-      mockFs.statSync.mockReturnValue({ size: 11 * 1024 * 1024 } as fs.Stats); // 11MB
+      mockFs.statSync.mockReturnValue(createMockStats({ size: 11 * 1024 * 1024 })); // 11MB
 
       const adapter = new FileLoggerAdapter({
         maxFileSize: 10 * 1024 * 1024, // 10MB
@@ -212,7 +225,7 @@ describe("FileLoggerAdapter", () => {
     });
 
     it("should not rotate file when size is below maxFileSize", () => {
-      mockFs.statSync.mockReturnValue({ size: 5 * 1024 * 1024 } as fs.Stats); // 5MB
+      mockFs.statSync.mockReturnValue(createMockStats({ size: 5 * 1024 * 1024 })); // 5MB
 
       const adapter = new FileLoggerAdapter({
         maxFileSize: 10 * 1024 * 1024, // 10MB
@@ -225,7 +238,7 @@ describe("FileLoggerAdapter", () => {
     });
 
     it("should rename current file to .1 during rotation", () => {
-      mockFs.statSync.mockReturnValue({ size: 15 * 1024 * 1024 } as fs.Stats);
+      mockFs.statSync.mockReturnValue(createMockStats({ size: 15 * 1024 * 1024 }));
       mockFs.existsSync.mockImplementation((p) => {
         const pathStr = p.toString();
         // Only the main file exists, no rotated files
@@ -247,7 +260,7 @@ describe("FileLoggerAdapter", () => {
     });
 
     it("should shift existing rotated files", () => {
-      mockFs.statSync.mockReturnValue({ size: 15 * 1024 * 1024 } as fs.Stats);
+      mockFs.statSync.mockReturnValue(createMockStats({ size: 15 * 1024 * 1024 }));
       mockFs.existsSync.mockImplementation((p) => {
         const pathStr = p.toString();
         // Main file and .1 exist
@@ -271,7 +284,7 @@ describe("FileLoggerAdapter", () => {
     });
 
     it("should delete oldest file when maxFiles is exceeded", () => {
-      mockFs.statSync.mockReturnValue({ size: 15 * 1024 * 1024 } as fs.Stats);
+      mockFs.statSync.mockReturnValue(createMockStats({ size: 15 * 1024 * 1024 }));
       mockFs.existsSync.mockReturnValue(true); // All files exist
 
       const adapter = new FileLoggerAdapter({
@@ -307,7 +320,7 @@ describe("FileLoggerAdapter", () => {
       const child = parent.child("ChildLogger");
       child.log({ level: LOG_LEVEL.INFO, message: "Child message", name: "" });
 
-      const writtenContent = mockFs.appendFileSync.mock.calls[0][1] as string;
+      const writtenContent = getWrittenContentAt(0);
       expect(writtenContent).toContain("ChildLogger");
     });
 
@@ -347,7 +360,7 @@ describe("FileLoggerAdapter", () => {
 
       child.log({ level: LOG_LEVEL.INFO, message: "Test", name: "Child" });
 
-      const writtenContent = mockFs.appendFileSync.mock.calls[0][1] as string;
+      const writtenContent = getWrittenContentAt(0);
       expect(writtenContent).toContain("service");
       expect(writtenContent).toContain("component");
     });
@@ -368,11 +381,50 @@ describe("FileLoggerAdapter", () => {
   });
 });
 
+describe("FileLoggerAdapter with BufferedLoggerAdapter", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockFs.existsSync.mockReturnValue(true);
+    mockFs.statSync.mockReturnValue(createMockStats());
+    mockFs.appendFileSync.mockImplementation(() => undefined);
+    mockFs.mkdirSync.mockImplementation(() => undefined);
+    mockFs.renameSync.mockImplementation(() => undefined);
+    mockFs.unlinkSync.mockImplementation(() => undefined);
+  });
+
+  it("should write logs when wrapped and flushed", async () => {
+    const fileAdapter = new FileLoggerAdapter({ directory: "./logs" });
+    const buffered = new BufferedLoggerAdapter(fileAdapter, {
+      maxBufferSize: 10,
+      flushIntervalMs: 1000,
+    });
+    buffered.initialize({});
+
+    buffered.log({
+      level: LOG_LEVEL.INFO,
+      message: "Buffered then file",
+      name: "Test",
+      timestamp: new Date().toISOString(),
+    });
+    expect(mockFs.appendFileSync).not.toHaveBeenCalled();
+
+    await buffered.flush();
+    expect(mockFs.appendFileSync).toHaveBeenCalledTimes(1);
+    expect(mockFs.appendFileSync).toHaveBeenCalledWith(
+      expect.stringContaining("combined.log"),
+      expect.stringContaining("Buffered then file"),
+      "utf8"
+    );
+
+    await buffered.destroy();
+  });
+});
+
 describe("createFileAdapter", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockFs.existsSync.mockReturnValue(true);
-    mockFs.statSync.mockReturnValue({ size: 0 } as fs.Stats);
+    mockFs.statSync.mockReturnValue(createMockStats());
   });
 
   it("should create adapter with default config", () => {

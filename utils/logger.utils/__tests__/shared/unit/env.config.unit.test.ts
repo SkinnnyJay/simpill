@@ -108,17 +108,20 @@ describe("env.config", () => {
         ["true", true],
         ["TRUE", true],
         ["1", true],
-        ["yes", true],
-        ["YES", true],
         ["false", false],
         ["FALSE", false],
         ["0", false],
-        ["no", false],
-        ["NO", false],
-      ])("should parse LOG_TIMESTAMPS=%s as %s", (envValue, expected) => {
+      ])("should parse LOG_TIMESTAMPS=%s as %s (strict)", (envValue, expected) => {
         process.env.LOG_TIMESTAMPS = envValue;
         const config = loadEnvConfig();
         expect(config.includeTimestamp).toBe(expected);
+      });
+
+      it("should use default for non-strict values like 'no' or 'yes'", () => {
+        process.env.LOG_TIMESTAMPS = "no";
+        expect(loadEnvConfig().includeTimestamp).toBe(ENV_DEFAULTS.includeTimestamp);
+        process.env.LOG_TIMESTAMPS = "yes";
+        expect(loadEnvConfig().includeTimestamp).toBe(ENV_DEFAULTS.includeTimestamp);
       });
 
       it("should use default for invalid LOG_TIMESTAMPS", () => {
@@ -138,11 +141,9 @@ describe("env.config", () => {
       it.each([
         ["true", true],
         ["1", true],
-        ["yes", true],
         ["false", false],
         ["0", false],
-        ["no", false],
-      ])("should parse LOG_COLORS=%s as %s", (envValue, expected) => {
+      ])("should parse LOG_COLORS=%s as %s (strict)", (envValue, expected) => {
         process.env.LOG_COLORS = envValue;
         const config = loadEnvConfig();
         expect(config.enableColors).toBe(expected);
@@ -159,7 +160,7 @@ describe("env.config", () => {
       process.env.LOG_LEVEL = "WARN";
       process.env.LOG_FORMAT = "json";
       process.env.LOG_TIMESTAMPS = "false";
-      process.env.LOG_COLORS = "no";
+      process.env.LOG_COLORS = "false";
 
       const config = loadEnvConfig();
 

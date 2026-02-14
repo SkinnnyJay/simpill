@@ -3,6 +3,7 @@
  * @description Type definitions for the logger package
  */
 
+import { VALUE_0 } from "./internal-constants";
 import { LOGGER_DEFAULTS, type LogLevel } from "./constants";
 
 /**
@@ -68,7 +69,7 @@ export function extractErrorInfo(
   }
 
   // Extract cause chain (ES2022 Error.cause)
-  if (err.cause !== undefined && maxDepth > 0) {
+  if (err.cause !== undefined && maxDepth > VALUE_0) {
     if (err.cause instanceof Error) {
       info.cause = extractErrorInfo(err.cause, maxDepth - 1);
     } else {

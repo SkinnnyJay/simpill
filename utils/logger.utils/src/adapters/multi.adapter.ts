@@ -18,6 +18,7 @@
  * ```
  */
 
+import { VALUE_0 } from "../shared/internal-constants";
 import type { LoggerAdapter, LoggerAdapterConfig } from "../shared/adapter";
 import type { LogEntry, LogMetadata } from "../shared/types";
 
@@ -40,7 +41,7 @@ export class MultiTransportAdapter implements LoggerAdapter {
    * @throws Error if no adapters are provided
    */
   constructor(adapters: LoggerAdapter[]) {
-    if (adapters.length === 0) {
+    if (adapters.length === VALUE_0) {
       throw new Error("MultiTransportAdapter requires at least one adapter");
     }
     this.adapters = [...adapters];

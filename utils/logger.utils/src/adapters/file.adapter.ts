@@ -3,17 +3,24 @@
  * @description Disk-based logger with rotation support
  * @runtime Node.js only (requires fs module)
  *
+ * Uses synchronous file I/O (appendFileSync, statSync, renameSync). Under high
+ * log throughput this can block the event loop. For high-throughput scenarios,
+ * wrap with BufferedLoggerAdapter so writes are batched and the file adapter
+ * receives fewer, larger flushes.
+ *
  * @example
  * ```typescript
  * import { FileLoggerAdapter } from "@simpill/logger.utils/adapters";
+ * import { BufferedLoggerAdapter } from "@simpill/logger.utils/shared";
  * import { configureLoggerFactory } from "@simpill/logger.utils";
  *
+ * const fileAdapter = new FileLoggerAdapter({
+ *   directory: "./logs",
+ *   maxFileSize: 5 * 1024 * 1024,  // 5MB
+ *   maxFiles: 3,
+ * });
  * configureLoggerFactory({
- *   adapter: new FileLoggerAdapter({
- *     directory: "./logs",
- *     maxFileSize: 5 * 1024 * 1024,  // 5MB
- *     maxFiles: 3,
- *   }),
+ *   adapter: new BufferedLoggerAdapter(fileAdapter, { maxBufferSize: 100 }),
  * });
  * ```
  */
@@ -64,6 +71,9 @@ interface ResolvedFileLoggerConfig {
  * - Rotates files when maxFileSize is exceeded
  * - Creates log directory if it doesn't exist
  * - Supports JSON and pretty output formats
+ *
+ * Performance: uses synchronous file I/O. For high-throughput logging, wrap
+ * this adapter with BufferedLoggerAdapter to batch writes and reduce blocking.
  */
 export class FileLoggerAdapter implements LoggerAdapter {
   private config: ResolvedFileLoggerConfig;

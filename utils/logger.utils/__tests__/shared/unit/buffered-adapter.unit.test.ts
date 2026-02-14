@@ -201,6 +201,75 @@ describe("BufferedLoggerAdapter", () => {
       expect(errors.length).toBe(1);
       expect((errors[0] as Error).message).toBe("Mock adapter error");
     });
+
+    it("should restore entries to buffer when flush fails", async () => {
+      const onFlushError = jest.fn();
+      const adapter = new BufferedLoggerAdapter(mockAdapter, {
+        maxBufferSize: 10,
+        flushIntervalMs: 1000,
+        onFlushError,
+      });
+      adapter.initialize({});
+
+      mockAdapter.shouldThrow = true;
+
+      adapter.log({
+        level: LOG_LEVEL.INFO,
+        message: "First",
+        name: "Test",
+        timestamp: new Date().toISOString(),
+      });
+      adapter.log({
+        level: LOG_LEVEL.INFO,
+        message: "Second",
+        name: "Test",
+        timestamp: new Date().toISOString(),
+      });
+
+      await adapter.flush();
+
+      expect(onFlushError).toHaveBeenCalledTimes(1);
+      expect(adapter.getBufferSize()).toBe(2);
+      const [err, entries] = onFlushError.mock.calls[0] as [unknown, LogEntry[]];
+      expect((err as Error).message).toBe("Mock adapter error");
+      expect(entries).toHaveLength(2);
+      expect(entries[0].message).toBe("First");
+      expect(entries[1].message).toBe("Second");
+    });
+
+    it("should restore entries when flushSync fails (buffer full)", () => {
+      const onFlushError = jest.fn();
+      const adapter = new BufferedLoggerAdapter(mockAdapter, {
+        maxBufferSize: 3,
+        flushIntervalMs: 1000,
+        onFlushError,
+      });
+      adapter.initialize({});
+
+      mockAdapter.shouldThrow = true;
+
+      adapter.log({
+        level: LOG_LEVEL.INFO,
+        message: "A",
+        name: "Test",
+        timestamp: new Date().toISOString(),
+      });
+      adapter.log({
+        level: LOG_LEVEL.INFO,
+        message: "B",
+        name: "Test",
+        timestamp: new Date().toISOString(),
+      });
+      adapter.log({
+        level: LOG_LEVEL.INFO,
+        message: "C",
+        name: "Test",
+        timestamp: new Date().toISOString(),
+      });
+
+      expect(onFlushError).toHaveBeenCalledTimes(1);
+      expect(adapter.getBufferSize()).toBe(3);
+    });
   });
 
   describe("child", () => {

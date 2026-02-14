@@ -1,7 +1,7 @@
 {
   "name": "@simpill/logger.utils",
   "version": "1.0.0",
-  "description": "Type-safe structured logging utilities with correlation context for Node.js and Edge Runtime",
+  "description": "Lightweight, type-safe structured logging with correlation context for Node.js and Edge Runtime.",
   "repository": {
     "type": "git",
     "url": "https://github.com/SkinnnyJay/@simpill/logger.utils.git",
@@ -47,6 +47,8 @@
   "scripts": {
     "clean": "rm -rf dist coverage .jest-cache node_modules/.cache",
     "build": "tsc",
+    "dev": "npm run build",
+    "dev:watch": "tsc --watch",
     "prepublishOnly": "npm run build",
     "test": "jest",
     "test:watch": "jest --watch",
@@ -58,24 +60,27 @@
     "check": "biome check .",
     "check:fix": "biome check --write .",
     "typecheck": "tsc --noEmit",
+    "publish": "npm publish",
     "verify": "./scripts/check.sh",
     "prepare": "./scripts/install-hooks.sh",
     "setup:hooks": "./scripts/install-hooks.sh",
     "all": "./scripts/build-all.sh"
   },
   "keywords": [
-    "logger",
+    "typescript",
+    "type-safe",
     "logging",
     "structured-logging",
     "correlation",
-    "tracing",
-    "edge-runtime",
-    "typescript",
-    "type-safe"
+    "node",
+    "edge-runtime"
   ],
   "author": "@SkinnnyJay",
   "license": "ISC",
   "sideEffects": false,
+  "dependencies": {
+    "@simpill/protocols.utils": "file:../protocols.utils"
+  },
   "devDependencies": {
     "@biomejs/biome": "^2.3.11",
     "@types/jest": "^30.0.0",

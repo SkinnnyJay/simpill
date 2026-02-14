@@ -44,8 +44,8 @@ export const ENV_DEFAULTS: EnvLoggerConfig = {
 };
 
 /**
- * Parse a boolean from environment variable string
- * Accepts: "true", "1", "yes" as truthy; "false", "0", "no" as falsy
+ * Parse a boolean from environment variable string (strict, from @simpill/protocols.utils)
+ * Accepts: "true", "1" as truthy; "false", "0" as falsy
  */
 function parseEnvBoolean(value: string | undefined, defaultValue: boolean): boolean {
   if (value === undefined || value === "") {
@@ -186,33 +186,12 @@ export function envConfigToAdapterConfig(envConfig: EnvLoggerConfig): LoggerAdap
   };
 }
 
-/**
- * Load logger adapter configuration from environment variables
- *
- * This is a convenience function that combines loadEnvConfig and envConfigToAdapterConfig.
- *
- * @returns LoggerAdapterConfig ready to use with configureLoggerFactory
- *
- * @example
- * ```typescript
- * import { configureLoggerFactory, loadAdapterConfigFromEnv } from "@simpill/logger.utils";
- *
- * // Auto-configure from environment
- * configureLoggerFactory({ config: loadAdapterConfigFromEnv() });
- *
- * // Or use individual env values
- * const envConfig = loadEnvConfig();
- * console.log(`Log level: ${envConfig.minLevel}`);
- * ```
- */
+/** Load adapter config from env (loadEnvConfig + envConfigToAdapterConfig). Use with configureLoggerFactory({ config: loadAdapterConfigFromEnv() }). */
 export function loadAdapterConfigFromEnv(): LoggerAdapterConfig {
   return envConfigToAdapterConfig(loadEnvConfig());
 }
 
-/**
- * Check if any logger environment variables are set
- * Useful for determining if auto-configuration should be applied
- */
+/** True if any logger env vars are set (for auto-config). */
 export function hasEnvConfig(): boolean {
   return (
     getEnvVar(ENV_KEYS.LOG_LEVEL) !== undefined ||

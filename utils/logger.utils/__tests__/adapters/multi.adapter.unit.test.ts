@@ -179,7 +179,7 @@ describe("MultiTransportAdapter", () => {
       const failingAdapter: LoggerAdapter = {
         initialize: () => {},
         log: () => {
-          throw "String error"; // eslint-disable-line @typescript-eslint/no-throw-literal
+          throw new Error("String error");
         },
         child: () => failingAdapter,
       };

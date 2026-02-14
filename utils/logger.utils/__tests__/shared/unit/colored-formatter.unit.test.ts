@@ -8,8 +8,16 @@ import {
   ColoredFormatterAdapter,
   coloredFormatter,
   createColoredFormatter,
+  type FormattedOutput,
   type FormatterContext,
 } from "../../../src/shared/formatters";
+
+/** Type guard + assertion: use when formatter must return a string. */
+function getStringOutput(result: FormattedOutput): string {
+  expect(typeof result).toBe("string");
+  if (typeof result !== "string") throw new Error("expected string");
+  return result;
+}
 
 describe("ColoredFormatterAdapter", () => {
   const createContext = (overrides: Partial<FormatterContext> = {}): FormatterContext => ({
@@ -25,95 +33,109 @@ describe("ColoredFormatterAdapter", () => {
     const formatter = new ColoredFormatterAdapter();
 
     it("should include ANSI color codes", () => {
-      const result = formatter.formatInfo(createContext()) as string;
-      expect(result).toContain("\x1b["); // ANSI escape sequence
+      const result = formatter.formatInfo(createContext());
+      const out = getStringOutput(result);
+      expect(out).toContain("\x1b["); // ANSI escape sequence
     });
 
     it("should include reset code", () => {
-      const result = formatter.formatInfo(createContext()) as string;
-      expect(result).toContain(COLORS.reset);
+      const result = formatter.formatInfo(createContext());
+      const out = getStringOutput(result);
+      expect(out).toContain(COLORS.reset);
     });
 
     it("should include timestamp", () => {
-      const result = formatter.formatInfo(createContext()) as string;
-      expect(result).toContain("2024-01-01T12:00:00.000Z");
+      const result = formatter.formatInfo(createContext());
+      const out = getStringOutput(result);
+      expect(out).toContain("2024-01-01T12:00:00.000Z");
     });
 
     it("should include logger name", () => {
-      const result = formatter.formatInfo(createContext()) as string;
-      expect(result).toContain("TestLogger:");
+      const result = formatter.formatInfo(createContext());
+      const out = getStringOutput(result);
+      expect(out).toContain("TestLogger:");
     });
 
     it("should include message", () => {
-      const result = formatter.formatInfo(createContext()) as string;
-      expect(result).toContain("Test message");
+      const result = formatter.formatInfo(createContext());
+      const out = getStringOutput(result);
+      expect(out).toContain("Test message");
     });
 
     it("should include metadata", () => {
-      const result = formatter.formatInfo(createContext()) as string;
-      expect(result).toContain('"key":"value"');
+      const result = formatter.formatInfo(createContext());
+      const out = getStringOutput(result);
+      expect(out).toContain('"key":"value"');
     });
   });
 
   describe("formatInfo", () => {
     it("should use blue color for INFO", () => {
       const formatter = new ColoredFormatterAdapter();
-      const result = formatter.formatInfo(createContext()) as string;
-      expect(result).toContain(COLORS.blue);
-      expect(result).toContain("[INFO]");
+      const result = formatter.formatInfo(createContext());
+      const out = getStringOutput(result);
+      expect(out).toContain(COLORS.blue);
+      expect(out).toContain("[INFO]");
     });
   });
 
   describe("formatWarn", () => {
     it("should use yellow color for WARN", () => {
       const formatter = new ColoredFormatterAdapter();
-      const result = formatter.formatWarn(createContext({ level: "WARN" })) as string;
-      expect(result).toContain(COLORS.yellow);
-      expect(result).toContain("[WARN]");
+      const result = formatter.formatWarn(createContext({ level: "WARN" }));
+      const out = getStringOutput(result);
+      expect(out).toContain(COLORS.yellow);
+      expect(out).toContain("[WARN]");
     });
   });
 
   describe("formatDebug", () => {
     it("should use magenta color for DEBUG", () => {
       const formatter = new ColoredFormatterAdapter();
-      const result = formatter.formatDebug(createContext({ level: "DEBUG" })) as string;
-      expect(result).toContain(COLORS.magenta);
-      expect(result).toContain("[DEBUG]");
+      const result = formatter.formatDebug(createContext({ level: "DEBUG" }));
+      const out = getStringOutput(result);
+      expect(out).toContain(COLORS.magenta);
+      expect(out).toContain("[DEBUG]");
     });
   });
 
   describe("formatError", () => {
     it("should use red color for ERROR", () => {
       const formatter = new ColoredFormatterAdapter();
-      const result = formatter.formatError(createContext({ level: "ERROR" })) as string;
-      expect(result).toContain(COLORS.red);
-      expect(result).toContain("[ERROR]");
+      const result = formatter.formatError(createContext({ level: "ERROR" }));
+      const out = getStringOutput(result);
+      expect(out).toContain(COLORS.red);
+      expect(out).toContain("[ERROR]");
     });
   });
 
   describe("configuration options", () => {
     it("should exclude timestamp when configured", () => {
       const formatter = new ColoredFormatterAdapter({ includeTimestamp: false });
-      const result = formatter.formatInfo(createContext()) as string;
-      expect(result).not.toContain("2024-01-01T12:00:00.000Z");
+      const result = formatter.formatInfo(createContext());
+      const out = getStringOutput(result);
+      expect(out).not.toContain("2024-01-01T12:00:00.000Z");
     });
 
     it("should exclude name when configured", () => {
       const formatter = new ColoredFormatterAdapter({ includeName: false });
-      const result = formatter.formatInfo(createContext()) as string;
-      expect(result).not.toContain("TestLogger:");
+      const result = formatter.formatInfo(createContext());
+      const out = getStringOutput(result);
+      expect(out).not.toContain("TestLogger:");
     });
 
     it("should exclude metadata when configured", () => {
       const formatter = new ColoredFormatterAdapter({ includeMetadata: false });
-      const result = formatter.formatInfo(createContext()) as string;
-      expect(result).not.toContain('"key"');
+      const result = formatter.formatInfo(createContext());
+      const out = getStringOutput(result);
+      expect(out).not.toContain('"key"');
     });
 
     it("should not use bright colors when configured", () => {
       const formatter = new ColoredFormatterAdapter({ bright: false });
-      const result = formatter.formatInfo(createContext()) as string;
-      expect(result).not.toContain(COLORS.bright);
+      const result = formatter.formatInfo(createContext());
+      const out = getStringOutput(result);
+      expect(out).not.toContain(COLORS.bright);
     });
   });
 
@@ -122,46 +144,52 @@ describe("ColoredFormatterAdapter", () => {
       const formatter = new ColoredFormatterAdapter({
         colors: { info: COLORS.green },
       });
-      const result = formatter.formatInfo(createContext()) as string;
-      expect(result).toContain(COLORS.green);
+      const result = formatter.formatInfo(createContext());
+      const out = getStringOutput(result);
+      expect(out).toContain(COLORS.green);
     });
 
     it("should use custom error color", () => {
       const formatter = new ColoredFormatterAdapter({
         colors: { error: COLORS.bgRed },
       });
-      const result = formatter.formatError(createContext({ level: "ERROR" })) as string;
-      expect(result).toContain(COLORS.bgRed);
+      const result = formatter.formatError(createContext({ level: "ERROR" }));
+      const out = getStringOutput(result);
+      expect(out).toContain(COLORS.bgRed);
     });
 
     it("should use custom timestamp color", () => {
       const formatter = new ColoredFormatterAdapter({
         colors: { timestamp: COLORS.cyan },
       });
-      const result = formatter.formatInfo(createContext()) as string;
-      expect(result).toContain(COLORS.cyan);
+      const result = formatter.formatInfo(createContext());
+      const out = getStringOutput(result);
+      expect(out).toContain(COLORS.cyan);
     });
 
     it("should use custom name color", () => {
       const formatter = new ColoredFormatterAdapter({
         colors: { name: COLORS.green },
       });
-      const result = formatter.formatInfo(createContext()) as string;
-      expect(result).toContain(COLORS.green);
+      const result = formatter.formatInfo(createContext());
+      const out = getStringOutput(result);
+      expect(out).toContain(COLORS.green);
     });
   });
 
   describe("empty metadata handling", () => {
     it("should not include empty metadata", () => {
       const formatter = new ColoredFormatterAdapter();
-      const result = formatter.formatInfo(createContext({ metadata: {} })) as string;
-      expect(result).not.toContain("{}");
+      const result = formatter.formatInfo(createContext({ metadata: {} }));
+      const out = getStringOutput(result);
+      expect(out).not.toContain("{}");
     });
 
     it("should not include undefined metadata", () => {
       const formatter = new ColoredFormatterAdapter();
-      const result = formatter.formatInfo(createContext({ metadata: undefined })) as string;
-      expect(result).not.toContain("undefined");
+      const result = formatter.formatInfo(createContext({ metadata: undefined }));
+      const out = getStringOutput(result);
+      expect(out).not.toContain("undefined");
     });
   });
 });
