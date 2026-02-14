@@ -1,7 +1,4 @@
-/**
- * Creates a function that returns a new Error (or subclass) with a fixed message/code.
- * Useful for consistent error creation in adapters or services.
- */
+/** Creates a function that returns a new Error (or subclass) with fixed message/code for consistent error creation. */
 export type ErrorConstructor = new (message: string) => Error;
 
 export function errorFactory(
