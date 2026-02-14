@@ -133,7 +133,15 @@ export class PollingManager<T> {
       this.state.lastPollTime = Date.now();
 
       try {
-        const result = await this.pollFn();
+        const pollPromise = this.pollFn();
+        const result =
+          this.config.pollTimeoutMs !== undefined
+            ? await raceWithTimeout(
+                pollPromise,
+                this.config.pollTimeoutMs,
+                new Error(`Poll timed out after ${this.config.pollTimeoutMs}ms`),
+              )
+            : await pollPromise;
         this.state.lastError = null;
 
         this.config.onSuccess?.(result);
