@@ -11,20 +11,17 @@ export function TodoForm() {
   const [title, setTitle] = useState("");
   const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = useStableCallback(
-    (e: React.FormEvent) => {
-      e.preventDefault();
-      setError(null);
-      const parsed = safeParseResult(addTodoSchema, { title });
-      if (!parsed.success) {
-        setError(parsed.error.issues[0]?.message ?? "Invalid");
-        return;
-      }
-      addTodo(parsed.data.title);
-      setTitle("");
-    },
-    [addTodo]
-  );
+  const handleSubmit = useStableCallback((e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    const parsed = safeParseResult(addTodoSchema, { title });
+    if (!parsed.success) {
+      setError(parsed.error.issues[0]?.message ?? "Invalid");
+      return;
+    }
+    addTodo(parsed.data.title);
+    setTitle("");
+  });
 
   return (
     <form onSubmit={handleSubmit} className="flex gap-2 w-full max-w-xl">

@@ -12,13 +12,13 @@ export function TodoItem({ todo }: { todo: Todo }) {
   const [editing, setEditing] = useState(false);
   const [editTitle, setEditTitle] = useState(todo.title);
 
-  const handleToggle = useStableCallback(() => toggleTodo(todo.id), [toggleTodo, todo.id]);
-  const handleDelete = useStableCallback(() => deleteTodo(todo.id), [deleteTodo, todo.id]);
+  const handleToggle = useStableCallback(() => toggleTodo(todo.id));
+  const handleDelete = useStableCallback(() => deleteTodo(todo.id));
   const handleSaveEdit = useStableCallback(() => {
     const t = editTitle.trim();
     if (t) updateTodo(todo.id, t);
     setEditing(false);
-  }, [updateTodo, todo.id, editTitle]);
+  });
 
   return (
     <li
