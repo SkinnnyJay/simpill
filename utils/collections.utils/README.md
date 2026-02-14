@@ -135,7 +135,7 @@ cache.set("b", 2);
 
 ### TTLCache
 
-Entries expire after a TTL (ms). Optional `maxSize` with LRU eviction. Expired entries are pruned only on `get()` and `size`—not on `set()`; set()-only workloads may grow memory until reads occur.
+Entries expire after a TTL (ms). Optional `maxSize` with LRU eviction. Expired entries are pruned on `set()`, `get()`, and when reading `size`; **prune is O(n)** in the number of entries, so when many entries are expired, these operations may be slow.
 
 ```ts
 import { TTLCache } from "@simpill/collections.utils";

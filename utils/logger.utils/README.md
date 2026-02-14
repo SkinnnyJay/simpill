@@ -275,7 +275,7 @@ logger.info("Handling request"); // metadata will include requestId if provider 
 
 ## Buffered adapter and shutdown
 
-`BufferedLoggerAdapter` batches entries and flushes on an interval or when the buffer is full. Flush is sequential (for-of over each entry); for very large buffers the inner adapter may be slow. To avoid losing logs on exit:
+`BufferedLoggerAdapter` batches entries and flushes on an interval or when the buffer is full. It **never blocks** the caller; if the inner adapter is slow, the buffer may grow and on overflow (maxBufferSize) the oldest entries are flushed synchronously. There is no backpressure API; for very high throughput consider a bounded buffer and onFlushError handling. To avoid losing logs on exit:
 
 - Call **`flushLogs()`** (or `adapter.flush()`) in a shutdown hook before process exit.
 - Call **`destroy()`** on the adapter to stop the timer and perform a final flush. This is **required for cleanup** (clears the flush timer and flushes remaining entries); without it the timer may keep the process alive or drop buffered logs.

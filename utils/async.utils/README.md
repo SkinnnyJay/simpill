@@ -111,7 +111,7 @@ import { ... } from "@simpill/async.utils/shared";  // Shared only
 - **timeoutWithFallback**(promise, ms, fallback) — resolves with `fallback` if timeout wins; does not cancel the original promise
 - **composeGates**, **withLimit**, **Semaphore**, **Mutex** — concurrency primitives
 - **PollingManager** — polling with backoff; options: initialIntervalMs, maxIntervalMs, backoffFactor, maxAttempts (zod-validated). start()/stop(); optional stopCondition, onError, onSuccess.
-- **createQueue**, **QueueOptions**, **Queue** — async task queue; use options to set concurrency
+- **createQueue**, **QueueOptions**, **Queue** — async task queue; use options to set concurrency. Up to `concurrency` tasks run at once; starting each task schedules a microtask, so a large queue drains in batches of concurrency-sized runs.
 
 ### What we don’t provide
 

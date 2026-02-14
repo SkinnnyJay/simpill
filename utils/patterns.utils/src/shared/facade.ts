@@ -6,12 +6,7 @@ export function createFacade<T>(facade: T): Facade<T> {
   return facade;
 }
 
-/**
- * Build a facade from dependencies and a factory.
- * @param deps - Dependencies passed to factory
- * @param factory - (deps) => facade
- * @returns factory(deps)
- */
+/** Build a facade from dependencies and a factory. */
 export function createFacadeFrom<TDeps, TFacade>(
   deps: TDeps,
   factory: (deps: TDeps) => TFacade

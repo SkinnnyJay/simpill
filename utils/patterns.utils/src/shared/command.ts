@@ -17,12 +17,7 @@ export function createCommand<TInput, TResult>(
   return command;
 }
 
-/**
- * Execute a command with the given input.
- * @param command - Command to run
- * @param input - Input for execute
- * @returns command.execute(input)
- */
+/** Execute a command with the given input. */
 export function runCommand<TInput, TResult>(
   command: Command<TInput, TResult>,
   input: TInput
@@ -30,12 +25,7 @@ export function runCommand<TInput, TResult>(
   return command.execute(input);
 }
 
-/**
- * Execute a command and return result plus optional undo function.
- * @param command - Command to run
- * @param input - Input for execute
- * @returns Object with result and optional undo() that calls command.undo
- */
+/** Execute a command and return result plus optional undo callback. */
 export function runCommandWithUndo<TInput, TResult>(
   command: Command<TInput, TResult>,
   input: TInput

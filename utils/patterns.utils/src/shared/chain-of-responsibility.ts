@@ -8,10 +8,7 @@ export function handled<O>(value: O): ChainResult<O> {
   return { handled: true, value };
 }
 
-/**
- * Create a result indicating the handler did not handle the input.
- * @returns ChainResult with handled: false
- */
+/** Create a chain result indicating the handler did not handle the input. */
 export function unhandled(): ChainResult<never> {
   return { handled: false };
 }
@@ -25,13 +22,7 @@ export type ChainOptions<I, O> = {
   errorMessage?: (input: I) => string;
 };
 
-/**
- * Chain of Responsibility: run handlers in order until one handles the input.
- * @param handlers - Array of handlers; first to return handled wins
- * @param options - Optional fallback when none handle; optional errorMessage when no fallback
- * @returns Function that runs the chain on input and returns O or throws
- * @throws Error when no handler handles and no fallback is provided
- */
+/** Run handlers in order until one returns handled; optional fallback or throws. */
 export function chainOfResponsibility<I, O>(
   handlers: Array<ChainHandler<I, O>>,
   options?: ChainOptions<I, O>
