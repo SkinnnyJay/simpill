@@ -56,6 +56,9 @@ export const useTodoStore = createAppStore<TodoState>(
     setFilter: (filter) => set({ filter }),
   }),
   {
-    persist: withPersistClientOnly<TodoState>("todo-app-store", { version: 1 }),
+    persist: {
+      ...withPersistClientOnly<TodoState>("todo-app-store", { version: 1 }),
+      partialize: (s) => ({ todos: s.todos, filter: s.filter }),
+    },
   }
 );
