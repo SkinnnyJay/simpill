@@ -1,7 +1,4 @@
-/**
- * @file Logger Factory
- * @description Central factory for creating loggers with pluggable adapters
- */
+/** Logger factory: create loggers with pluggable adapters. */
 
 import type { LoggerAdapter, LoggerAdapterConfig } from "./adapter";
 import {
@@ -12,30 +9,21 @@ import {
   LOGGER_DEFAULTS,
   type LogLevel,
 } from "./constants";
+import { VALUE_0 } from "./internal-constants";
 import { getLogContext } from "./context";
 import { hasEnvConfig, loadAdapterConfigFromEnv } from "./env.config";
 import { SimpleLoggerAdapter } from "./simple-adapter";
 import type { LogEntry, Logger, LogMetadata } from "./types";
 import { normalizeErrorsInMetadata } from "./types";
 
-/**
- * Global state for the logger factory
- */
 let globalAdapter: LoggerAdapter | null = null;
 let globalConfig: LoggerAdapterConfig = {};
 let isMockEnabled = false;
 let isEnvConfigApplied = false;
 
-/**
- * Cache for loggers without custom metadata
- * Key is the logger name, value is the Logger instance
- */
 const loggerCache = new Map<string, Logger>();
 
-/**
- * Apply environment configuration if not already applied
- * This is called lazily on first adapter access
- */
+/** Lazy env-based config on first adapter access. */
 function applyEnvConfigIfNeeded(): void {
   if (isEnvConfigApplied) {
     return;
@@ -43,17 +31,12 @@ function applyEnvConfigIfNeeded(): void {
 
   isEnvConfigApplied = true;
 
-  // Only apply env config if environment variables are set
-  // and no explicit config has been provided
-  if (hasEnvConfig() && Object.keys(globalConfig).length === 0) {
+  if (hasEnvConfig() && Object.keys(globalConfig).length === VALUE_0) {
     globalConfig = loadAdapterConfigFromEnv();
   }
 }
 
-/**
- * Get the current adapter, creating default if needed
- * Auto-bootstraps from environment variables on first use
- */
+/** Current adapter; bootstraps from env on first use. */
 function getAdapterInternal(): LoggerAdapter {
   if (!globalAdapter) {
     applyEnvConfigIfNeeded();
@@ -63,10 +46,7 @@ function getAdapterInternal(): LoggerAdapter {
   return globalAdapter;
 }
 
-/**
- * Fallback logging when adapter fails
- * Writes directly to stderr to avoid infinite loops
- */
+/** Fallback to stderr when adapter fails (avoids loops). */
 function logAdapterError(adapterError: unknown, entry: LogEntry): void {
   try {
     const errorMsg = adapterError instanceof Error ? adapterError.message : String(adapterError);
@@ -80,9 +60,6 @@ function logAdapterError(adapterError: unknown, entry: LogEntry): void {
   }
 }
 
-/**
- * Create a Logger interface from an adapter
- */
 function createLoggerFromAdapter(adapter: LoggerAdapter, name: string): Logger {
   const createLogMethod =
     (level: LogLevel) =>

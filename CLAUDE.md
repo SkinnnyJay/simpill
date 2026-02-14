@@ -15,8 +15,32 @@ This is a monorepo containing utility packages under the `@simpill` namespace.
 
 | Package | Path | Status |
 |---------|------|--------|
-| `@simpill/env.utils` | `env.utils/` | ✅ Stable |
-| `@simpill/logger.utils` | `logger.utils/` | 🚧 In Development |
+| `@simpill/env.utils` | `utils/env.utils/` | ✅ Stable |
+| `@simpill/logger.utils` | `utils/logger.utils/` | 🚧 In Development |
+| `@simpill/object.utils` | `utils/object.utils/` | ✅ Stable |
+| `@simpill/misc.utils` | `utils/misc.utils/` | 🆕 New |
+| `@simpill/cache.utils` | `utils/cache.utils/` | 🆕 New |
+| `@simpill/async.utils` | `utils/async.utils/` | 🆕 New |
+| `@simpill/function.utils` | `utils/function.utils/` | 🆕 New |
+| `@simpill/test.utils` | `utils/test.utils/` | 🆕 New |
+| `@simpill/events.utils` | `utils/events.utils/` | 🆕 New |
+| `@simpill/data.utils` | `utils/data.utils/` | 🆕 New |
+| `@simpill/time.utils` | `utils/time.utils/` | ✅ Stable |
+| `@simpill/uuid.utils` | `utils/uuid.utils/` | ✅ Stable |
+| `@simpill/crypto.utils` | `utils/crypto.utils/` | 🆕 New |
+| `@simpill/file.utils` | `utils/file.utils/` | 🆕 New |
+| `@simpill/errors.utils` | `utils/errors.utils/` | 🆕 New |
+| `@simpill/patterns.utils` | `utils/patterns.utils/` | 🆕 New |
+| `@simpill/factories.utils` | `utils/factories.utils/` | 🆕 New |
+| `@simpill/adapters.utils` | `utils/adapters.utils/` | 🆕 New |
+| `@simpill/algorithms.utils` | `utils/algorithms.utils/` | 🆕 New |
+| `@simpill/annotations.utils` | `utils/annotations.utils/` | 🆕 New |
+| `@simpill/array.utils` | `utils/array.utils/` | 🆕 New |
+| `@simpill/collections.utils` | `utils/collections.utils/` | 🆕 New |
+| `@simpill/zod.utils` | `utils/zod.utils/` | 🆕 New |
+| `@simpill/zustand.utils` | `utils/zustand.utils/` | 🆕 New |
+| `@simpill/react.utils` | `utils/react.utils/` | 🆕 New |
+| `@simpill/nextjs.utils` | `utils/nextjs.utils/` | 🆕 New |
 
 ## Quick Reference
 

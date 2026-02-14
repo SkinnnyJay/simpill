@@ -160,6 +160,7 @@ Test files MUST follow this naming convention:
   ],
   "author": "",
   "license": "ISC",
+  "sideEffects": false,
   "devDependencies": {
     "@biomejs/biome": "^2.3.11",
     "@types/jest": "^30.0.0",
@@ -176,6 +177,8 @@ Test files MUST follow this naming convention:
   }
 }
 ```
+
+- **`sideEffects": false`** — Tells bundlers (webpack, Rollup, Vite) the package is side-effect free so unused exports can be tree-shaken. Use this for pure utility packages.
 
 ### tsconfig.json
 
@@ -490,6 +493,14 @@ __tests__/
     └── unit/
 ```
 
+### Async tests and timeouts
+
+For **async-heavy tests** (e.g. `delay()`, retries, WebSockets, timers):
+
+- Use **short delays** in unit tests (e.g. 1–50 ms) so CI stays fast.
+- If a test needs more time, set **`jest.setTimeout(ms)`** at the top of the `describe` block or in `jest.config.js` (`testTimeout`). A common default is 5–10 seconds for unit tests; increase only for integration tests that hit real I/O.
+- Prefer **fake timers** (`jest.useFakeTimers()`) where possible to avoid real waits.
+
 ### Test File Template
 
 ```typescript
@@ -700,6 +711,8 @@ Use this checklist when creating a new package:
 - [ ] `src/server/index.ts` server exports
 - [ ] `src/shared/index.ts` shared exports
 - [ ] Implementation files in appropriate directories
+- [ ] No unbounded caches by default (document or use bounded cache/LRU)
+- [ ] Timers and event listeners cleaned up in public APIs (e.g. destroy/close)
 
 ### Tests
 
