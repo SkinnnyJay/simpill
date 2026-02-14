@@ -81,9 +81,11 @@ export function throttle<TArgs extends unknown[]>(
   };
 
   const flush = (): void => {
-    if (timeoutId !== null && lastArgs !== null) {
+    if (timeoutId !== null) {
       clearTimeout(timeoutId);
       timeoutId = null;
+    }
+    if (lastArgs !== null) {
       const args = lastArgs;
       lastArgs = null;
       lastCallTime = Date.now();
