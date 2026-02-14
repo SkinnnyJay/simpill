@@ -148,7 +148,7 @@ export function createReconnectingWebSocket(
     if (signal?.aborted) return;
     const elapsed = firstConnectAt !== null ? Date.now() - firstConnectAt : 0;
     if (retryPolicy?.maxElapsedMs !== undefined && elapsed >= retryPolicy.maxElapsedMs) return;
-    const jittered = applyJitter(delayMs, jitter, jitterRatio);
+    const jittered = Math.max(1, applyJitter(delayMs, jitter, jitterRatio));
     hooks?.onReconnect?.(reconnectAttempt, jittered);
     reconnectTimerId = setTimeout(() => {
       reconnectTimerId = null;
