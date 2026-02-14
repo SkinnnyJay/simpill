@@ -13,6 +13,7 @@ module.exports = {
   ],
   coverageDirectory: "coverage",
   coverageReporters: ["text", "lcov", "html"],
+  // Branches/functions below 80% due to React/Zustand integration and hard-to-hit paths; align to 80% when feasible.
   coverageThreshold: {
     global: {
       branches: 72,

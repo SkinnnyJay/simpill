@@ -83,7 +83,7 @@ import { ... } from "@simpill/data.utils/shared"; // Shared only
 - **withDefaults**, **coerceNumber**, **coerceBoolean**, **coerceString**, **sanitizeForJson**
 - **mergeConfigLayers**, **requireKeys**, **configFromEnv**
 - **addCreatedAt**, **touchUpdatedAt**, **withNextVersion**, **isNewerVersion**
-- **deepDefaults**, **getByPath**, **setByPath**
+- **deepDefaults**, **getByPath**, **setByPath** — **deepDefaults** uses an internal `Record<string, unknown>` implementation; the public API casts at the boundary so callers get **T** back. For custom helpers that merge or extend generics, use the same pattern: cast input to Record for the implementation, cast the result back to **T**.
 - **deepClone**, **pickKeys**, **omitKeys**, **ensureKeys**
 - **searchObject**(obj, options?) — walks object and returns matches (path + value). Options: **maxDepth** (default Infinity; set to limit traversal depth for large or deep trees), **predicate**(path, value). Returns **ObjectSearchMatch[]**.
 - **searchString**(haystack, needle, algorithm?) — returns first index of needle or -1. **StringSearchAlgorithm**: IndexOf, Includes, Kmp.

@@ -25,7 +25,7 @@
 
 ---
 
-**When to use:** You want Result/Either-style error handling (`ok`/`err`, `unwrapOr`, `fromThrowable`), async pipelines (`pipeAsync`), key-based strategy dispatch (`strategySelector`), or composable patterns (Observer, State, Builder, etc.) without pulling in a large library.
+**When to use:** You want Result/Either-style error handling. This package uses many small pattern files (adapter, facade, proxy, result, strategy-selector, etc.). If the count becomes hard to maintain, we may consolidate into fewer, more cohesive modules. (`ok`/`err`, `unwrapOr`, `fromThrowable`), async pipelines (`pipeAsync`), key-based strategy dispatch (`strategySelector`), or composable patterns (Observer, State, Builder, etc.) without pulling in a large library.
 
 ---
 

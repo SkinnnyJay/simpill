@@ -36,6 +36,8 @@ const useAppStore = createAppStore(
 );
 ```
 
+**Coverage:** This package uses lower coverage thresholds (72% branches, 70% functions) than the repo default 80% due to React/Zustand integration and hard-to-hit branches; lines and statements remain 80%.
+
 ## Subpath exports
 
 - `@simpill/zustand.utils` – all exports

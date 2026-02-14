@@ -10,7 +10,7 @@
   Type-safe enum helpers: getEnumValue, isValidEnumValue, EnumHelper.
 </p>
 
-**Features:** Type-safe · Node & Edge · Lightweight
+**Features:** Type-safe · Node & Edge · Lightweight. The legacy **utils/enum/** folder is deprecated; use **@simpill/enum.utils** only.
 
 <p align="center">
   <a href="#installation">Installation</a> •
