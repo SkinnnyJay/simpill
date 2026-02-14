@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { VALUE_0 } from "./constants";
+import { raceWithTimeout } from "./race-with-timeout";
 
 export const PollingOptionsSchema = z.object({
   initialIntervalMs: z.number().positive(),
@@ -11,6 +12,8 @@ export const PollingOptionsSchema = z.object({
 export type PollingOptionsBase = z.infer<typeof PollingOptionsSchema>;
 
 export interface PollingOptions<T> extends PollingOptionsBase {
+  /** Optional timeout per poll; if pollFn exceeds this, onError is called and next run is scheduled. */
+  pollTimeoutMs?: number;
   stopCondition?: (result: T) => boolean;
   onError?: (error: Error) => void;
   onSuccess?: (result: T) => void;
@@ -31,6 +34,7 @@ export class PollingManager<T> {
     maxIntervalMs: number;
     backoffFactor: number;
     maxAttempts?: number;
+    pollTimeoutMs?: number;
     stopCondition?: (result: T) => boolean;
     onError?: (error: Error) => void;
     onSuccess?: (result: T) => void;
@@ -67,6 +71,7 @@ export class PollingManager<T> {
       maxIntervalMs: options.maxIntervalMs,
       backoffFactor: baseValidation.data.backoffFactor,
       maxAttempts: options.maxAttempts,
+      pollTimeoutMs: options.pollTimeoutMs,
       stopCondition: options.stopCondition,
       onError: options.onError,
       onSuccess: options.onSuccess,
