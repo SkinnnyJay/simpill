@@ -79,6 +79,9 @@ site/
 # Local settings (do not commit)
 .claude/settings.local.json
 
+# Package source lives in separate GitHub repos; this repo is landing page + logo only
+utils/
+
 # Project specific
 # Add your project-specific ignore patterns here
 .playwright-mcp/
