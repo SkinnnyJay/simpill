@@ -14,7 +14,7 @@ cd "$REPO_ROOT"
 FAILED_BUILD=()
 FAILED_TEST=()
 
-for d in utils/*.utils; do
+for d in utils/@simpill-*.utils; do
   name=$(basename "$d")
   if (cd "$d" && npm run build --silent 2>&1) >/dev/null; then
     echo "  build $name ✓"
