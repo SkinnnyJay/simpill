@@ -1,0 +1,29 @@
+---
+description: "@simpill monorepo code quality: type safety, file limits, Biome, naming. See CLAUDE.md and CONTRIBUTING.md for package layout."
+alwaysApply: true
+---
+
+# Code Quality Standards
+
+## Strict Type Safety
+- Never use `any`. Type every variable, parameter, and return value explicitly.
+- Never use type casting (`as`). Use type guards, narrowing, or generics instead.
+- Strict mode enabled; build errors fail the build.
+
+## File & Function Size Limits
+- **Functions**: max 500 lines. Break large functions into smaller, composable helpers.
+- **Files**: max 2500 lines. Split into modules if approaching the limit.
+- Prefer early returns to reduce nesting depth.
+
+## Environment & Logging
+- In library packages: avoid `process.env` and `console.*` in published code; use dependency injection or pass config. Tests and scripts may use them.
+- When integrating with apps: use project env and logging utilities; see CONTRIBUTING for package layout.
+
+## Comments & Naming
+- Only meaningful comments: logical steps, non-obvious "why" reasoning. No trivial restatements. No emoji in code or comments.
+- Private/protected: use TypeScript `private`/`protected`; do not prefix with underscores.
+- Naming: PascalCase for classes; camelCase for functions/variables; SCREAMING_SNAKE_CASE for constants; dot-separated filenames (e.g. `env.utils.ts`).
+
+## Package Conventions (see CONTRIBUTING.md)
+- Layout: `src/{client,server,shared}/`, `__tests__/` mirroring src, Biome for lint/format, 80% coverage.
+- Subpath exports: `@simpill/name.utils`, `@simpill/name.utils/client`, `/server`, `/shared`.
