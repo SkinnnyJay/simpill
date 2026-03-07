@@ -2,6 +2,10 @@
 
 Add these topics to your GitHub repo (Settings → General → Topics) so the repo appears when people search for these terms.
 
+**Set programmatically:** From repo root, run `./scripts/github-set-repo-topics.sh` (requires `gh` CLI authenticated and `jq`). This replaces the repo’s topics with the list below, up to GitHub’s limit of 20.
+
+**Set topics on this repo and all @simpill package repos:** Run `npm run github:topics` or `node scripts/github-set-all-topics.js` (requires `gh` authenticated). Use `--packages-only` to update only package repos, or `--dry-run` to preview.
+
 ## Core
 
 - `simpill`
