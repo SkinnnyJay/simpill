@@ -61,7 +61,8 @@ htmlcov/
 secrets/
 .next
 
-# Documentation build
+# Documentation (excluded from build output and repo)
+docs/
 docs/_build/
 site/
 
@@ -79,7 +80,7 @@ site/
 # Local settings (do not commit)
 .claude/settings.local.json
 
-# Package source lives in separate GitHub repos; this repo is landing page + logo only
+# Utils are separate GitHub repos; monolith installs via github:SkinnnyJay/<name>.utils
 utils/
 
 # Project specific
