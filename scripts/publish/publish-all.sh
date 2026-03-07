@@ -4,17 +4,17 @@
 # Requires: gh (GitHub CLI) and npm logged in with access to @simpill scope.
 # =============================================================================
 # Usage:
-#   ./scripts/publish-all.sh              # GitHub push + npm publish (prompts)
-#   ./scripts/publish-all.sh --dry-run   # No push, npm publish --dry-run
-#   ./scripts/publish-all.sh --skip-github   # Only npm publish
-#   ./scripts/publish-all.sh --yes       # Skip confirmations
+#   ./scripts/publish/publish-all.sh              # GitHub push + npm publish (prompts)
+#   ./scripts/publish/publish-all.sh --dry-run   # No push, npm publish --dry-run
+#   ./scripts/publish/publish-all.sh --skip-github   # Only npm publish
+#   ./scripts/publish/publish-all.sh --yes       # Skip confirmations
 # =============================================================================
 
 set -euo pipefail
 
-REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-LIB_DIR="$SCRIPT_DIR/lib"
+LIB_DIR="$REPO_ROOT/scripts/lib"
 
 DRY_RUN=false
 SKIP_GITHUB=false

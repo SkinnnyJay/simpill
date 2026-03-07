@@ -9,13 +9,13 @@ const { execSync } = require("child_process");
 const path = require("path");
 const fs = require("fs");
 
-const REPO_ROOT = path.resolve(__dirname, "..");
+const REPO_ROOT = path.resolve(__dirname, "..", "..");
 const PACKAGE_JSON = path.join(REPO_ROOT, "package.json");
 const TOPICS_FILE = path.join(REPO_ROOT, ".github", "TOPICS.md");
 const MAX_TOPICS = 20;
 const ACCEPT_HEADER = "Accept: application/vnd.github.mercy-preview+json";
 
-const { BASE_TOPICS, PACKAGE_TOPICS } = require("./lib/package-topics.js");
+const { BASE_TOPICS, PACKAGE_TOPICS } = require("../lib/package-topics.js");
 
 function run(cmd, options = {}) {
   try {

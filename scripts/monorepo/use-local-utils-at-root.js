@@ -1,31 +1,30 @@
 #!/usr/bin/env node
 /**
- * Sync monorepo package.json dependencies from utils/@simpill-*.utils.
- * Uses github:SkinnnyJay/<name>.utils so the monorepo works anywhere (clone + npm install).
- * Run from repo root when you have utils/ locally (e.g. after cloning child repos).
+ * Rewrite root package.json so @simpill deps point to local utils (file:./utils/@simpill-*.utils).
+ * Run from repo root. After this, run npm install so root uses built local packages.
+ * Use npm run sync:deps to restore npm ^version deps.
  */
 const fs = require("fs");
 const path = require("path");
 
-const REPO_ROOT = path.join(__dirname, "..");
+const REPO_ROOT = path.join(__dirname, "..", "..");
 const UTILS = path.join(REPO_ROOT, "utils");
 const ROOT_PKG = path.join(REPO_ROOT, "package.json");
-const OWNER = "SkinnnyJay";
 
-const dirs = fs.readdirSync(UTILS, { withFileTypes: true })
+const dirs = fs
+  .readdirSync(UTILS, { withFileTypes: true })
   .filter((d) => d.isDirectory() && d.name.startsWith("@simpill-") && d.name.endsWith(".utils"))
   .map((d) => d.name)
   .sort();
 
 const deps = {};
 for (const dir of dirs) {
-  const shortName = dir.replace(/^@simpill-/, "");
   const pkgPath = path.join(UTILS, dir, "package.json");
   if (!fs.existsSync(pkgPath)) continue;
   const pkg = JSON.parse(fs.readFileSync(pkgPath, "utf8"));
   const name = pkg.name;
   if (name && name.startsWith("@simpill/")) {
-    deps[name] = `github:${OWNER}/${shortName}`;
+    deps[name] = `file:./utils/${dir}`;
   }
 }
 
@@ -38,22 +37,13 @@ for (const [name, spec] of Object.entries(deps)) {
     changed = true;
   }
 }
-const rootNames = new Set(Object.keys(rootPkg.dependencies).filter((k) => k.startsWith("@simpill/")));
-const utilNames = new Set(Object.keys(deps));
-for (const name of rootNames) {
-  if (!utilNames.has(name)) {
-    delete rootPkg.dependencies[name];
-    changed = true;
-  }
-}
 if (changed) {
   const keys = Object.keys(rootPkg.dependencies).sort();
   const sorted = {};
   for (const k of keys) sorted[k] = rootPkg.dependencies[k];
   rootPkg.dependencies = sorted;
   fs.writeFileSync(ROOT_PKG, JSON.stringify(rootPkg, null, 2) + "\n", "utf8");
-  console.log("Updated root package.json dependencies.");
+  console.log("Root package.json now uses file:./utils/@simpill-*.utils. Run: npm install");
 } else {
-  console.log("Root package.json already in sync.");
+  console.log("Root already points to local utils.");
 }
-console.log("Monorepo deps:", Object.keys(deps).length, "packages from utils/.");
