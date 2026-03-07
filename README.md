@@ -116,7 +116,6 @@ Source: [github.com/SkinnnyJay/simpill-utils](https://github.com/SkinnnyJay/simp
 ## Contributing
 
 - [CONTRIBUTING.md](./CONTRIBUTING.md) — How to add and maintain packages in this monorepo.
-- [.github/TOPICS.md](./.github/TOPICS.md) — GitHub/npm topics and keywords.
 
 ---
 
