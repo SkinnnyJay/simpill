@@ -16,7 +16,7 @@ This is a monorepo containing utility packages under the `@simpill` namespace.
 | Package | Path | Status |
 |---------|------|--------|
 | `@simpill/env.utils` | `utils/@simpill-env.utils/` | Stable |
-| `@simpill/logger.utils` | `utils/@simpill-logger.utils/` | In Development |
+| `@simpill/logger.utils` | `utils/@simpill-logger.utils/` | Stable |
 | `@simpill/object.utils` | `utils/@simpill-object.utils/` | Stable |
 | `@simpill/misc.utils` | `utils/@simpill-misc.utils/` | New |
 | `@simpill/cache.utils` | `utils/@simpill-cache.utils/` | New |

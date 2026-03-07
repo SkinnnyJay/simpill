@@ -9,7 +9,7 @@ This monorepo hosts lightweight, type-safe TypeScript utility packages under the
 | Package | Description | Status |
 |---------|-------------|--------|
 | `@simpill/env.utils` | Type-safe environment variable utilities | Stable |
-| `@simpill/logger.utils` | Structured logging with correlation context | In Development |
+| `@simpill/logger.utils` | Structured logging with correlation context | Stable |
 | `@simpill/object.utils` | Object utilities (pick, omit, merge, get/set, guards) | Stable |
 | `@simpill/misc.utils` | Backend misc: singleton, debounce, throttle, LRU, polling, enums, UUID, once, memoize | New |
 | `@simpill/cache.utils` | LRU map, TTL cache, memoize | New |
