@@ -20,6 +20,8 @@
 
 You do **not** need to “claim” anything extra for the scope beyond having the org (or user) named `simpill`.
 
+**If you see `404 Scope not found`:** The `@simpill` scope does not exist on npm yet. Create an organization named **simpill** at https://www.npmjs.com/org/create (one-time), then run `npm publish --access public` again from each package directory.
+
 ---
 
 ## GitHub: Repo and org
