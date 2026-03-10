@@ -43,6 +43,7 @@ jobs:
         run: npm ci
 
       - name: Build dependencies (protocols, errors, request-context, zod)
+        working-directory: .
         run: |
           for d in utils/@simpill-protocols.utils utils/@simpill-errors.utils utils/@simpill-request-context.utils utils/@simpill-zod.utils; do
             (cd "$d" && npm ci && npm run build)
