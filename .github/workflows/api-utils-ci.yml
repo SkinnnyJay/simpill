@@ -1,3 +1,4 @@
+# api.utils: lint, format, typecheck, test:coverage, build (Node 18/20/22)
 name: "api.utils CI"
 
 on:
