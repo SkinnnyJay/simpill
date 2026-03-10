@@ -1,5 +1,5 @@
 # All 38 utils packages: lint, format, typecheck, test:coverage, build (Node 20).
-# Runs for each package when utils/** or this workflow changes.
+# Builds file: dependencies via scripts/ci/build-package-deps.js.
 name: "Utils (all packages) CI"
 
 on:
@@ -17,7 +17,7 @@ on:
       - ".github/workflows/utils-all-ci.yml"
 
 jobs:
-  package:
+  test:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -73,12 +73,13 @@ jobs:
           cache: "npm"
           cache-dependency-path: ${{ matrix.package }}/package-lock.json
 
-      - name: Install package dependencies
+      - name: Install dependencies
         run: npm ci
         working-directory: ${{ matrix.package }}
 
       - name: Build file: dependencies
         run: node scripts/ci/build-package-deps.js ${{ matrix.package }}
+        working-directory: .
 
       - name: Lint
         run: npm run lint

@@ -1,4 +1,4 @@
-# Monolith (root): typecheck, test. Runs when root-level files change.
+# Monolith (root): typecheck, test. Runs on push when root files change.
 name: "Monolith CI"
 
 on:
@@ -42,9 +42,6 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
-
-      - name: Build (typecheck)
-        run: npm run build
 
       - name: Typecheck
         run: npm run typecheck
