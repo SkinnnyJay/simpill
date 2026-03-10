@@ -53,6 +53,9 @@ coverage/
 .coverage
 htmlcov/
 
+# Local CI run logs
+.ci-run-logs/
+
 # Environment and secrets
 .env
 .env.local
